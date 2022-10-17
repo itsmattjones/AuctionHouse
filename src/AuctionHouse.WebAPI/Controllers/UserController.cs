@@ -50,7 +50,7 @@ namespace AuctionHouse.WebAPI.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserCommand command)
+        public async Task<IActionResult> Update([FromBody] UpdateUserCommand command)
         {
             _logger.LogInformation("Update user [{name}]", HttpContext.User.Identity?.Name ?? "unknown");
 
