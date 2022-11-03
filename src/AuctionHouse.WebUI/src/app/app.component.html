@@ -1,13 +1,5 @@
-<!-- nav -->
-<nav class="navbar navbar-expand navbar-dark bg-dark">
-  <div class="navbar-nav">
-      <a class="nav-item nav-link" routerLink="/">Home</a>
-      <a class="nav-item nav-link" routerLink="/login">Login</a>
-      <a class="nav-item nav-link" *ngIf="isLoggedIn()" onclick="logout()">Logout</a>
-  </div>
-</nav>
+<app-header></app-header>
 
-<!-- main app container -->
 <div class="container">
   <router-outlet></router-outlet>
 </div>

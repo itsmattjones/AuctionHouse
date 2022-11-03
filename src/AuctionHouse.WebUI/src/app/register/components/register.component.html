@@ -1,0 +1,55 @@
+<div [hidden]="!loading" style="margin-top: -5px;">
+    <mat-progress-bar mode="indeterminate" color="accent"></mat-progress-bar>
+</div>
+  
+<div class="card-container">
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <mat-card>
+      <h1>Registration</h1>
+
+      <mat-card-content>
+        <!-- email -->
+        <mat-form-field class="max-width">
+          <input matInput id="email" formControlName="email" placeholder="Email" [ngClass]="{ 'is-invalid': submitted && registerForm.controls['email'].errors }" required>
+        </mat-form-field>
+        <mat-error *ngIf="submitted && registerForm.controls" class="form-val-hint">
+            <div *ngIf="registerForm.controls">Email is required</div>
+        </mat-error>
+
+        <div class="h-space"></div>
+
+        <!-- username -->
+        <mat-form-field class="max-width">
+          <input matInput id="username" formControlName="username" placeholder="Username" [ngClass]="{ 'is-invalid': submitted && registerForm.controls['username'].errors }" autofocus required>
+        </mat-form-field>
+        <mat-error *ngIf="submitted && registerForm.controls" class="form-val-hint">
+            <div *ngIf="registerForm.controls">Username is required</div>
+        </mat-error>
+
+        <div class="h-space"></div>
+
+        <!-- password -->
+        <mat-form-field class="max-width">
+          <input matInput type="password" id="password" formControlName="password" placeholder="Password" [ngClass]="{ 'is-invalid': submitted && registerForm.controls['password'].errors }" required>
+        </mat-form-field>
+        <mat-error *ngIf="submitted && registerForm.controls" class="form-val-hint">
+            <div *ngIf="registerForm.controls">Password is required</div>
+        </mat-error>
+
+        <div class="h-space"></div>
+
+        <!-- confirm password -->
+        <mat-form-field class="max-width">
+          <input matInput type="password" id="confirmPassword" formControlName="confirmPassword" placeholder="Confirm Password" [ngClass]="{ 'is-invalid': submitted && registerForm.controls['confirmPassword'].errors }" required>
+        </mat-form-field>
+        <mat-error *ngIf="submitted && registerForm.controls" class="form-val-hint">
+            <div *ngIf="registerForm.controls">Please confirm your password</div>
+        </mat-error>
+
+        <div class="h-space"></div>
+
+        <button mat-raised-button type="submit" color="accent" class="max-width" [disabled]="loading">Register</button>
+      </mat-card-content>
+    </mat-card>
+  </form>
+</div>
