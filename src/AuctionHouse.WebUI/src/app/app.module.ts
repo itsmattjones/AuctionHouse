@@ -5,6 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 
+import { CoreModule } from './core/core.module';
 import { HomeModule } from './home/home.module';
 import { LoginModule } from './login/login.module';
 
@@ -16,8 +17,9 @@ import { LoginModule } from './login/login.module';
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
+    CoreModule,
     HomeModule,
-    LoginModule
+    LoginModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

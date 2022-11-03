@@ -12,6 +12,10 @@ export class AuthenticationService {
 
     constructor(private router: Router, private http: HttpClient) {}
 
+    public register(email: string, username: string, password: string) {
+      return this.http.post<any>(`${environment.apiUrl}/user`, { email, username, password });
+    }
+
     public login(email: string, password: string) {
       return this.http.post<any>(`${environment.apiUrl}/user/login`, { email, password })
         .pipe(map(response => {

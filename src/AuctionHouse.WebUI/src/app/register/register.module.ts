@@ -9,26 +9,25 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 
-import { LoginRoutingModule } from './login-routing.module';
-import { LoginComponent } from './components/login.component';
+import { RegisterRoutingModule } from './register-routing.module';
+import { RegisterComponent } from './components/register.component';
+
 
 @NgModule({
   declarations: [
-    LoginComponent
+    RegisterComponent
   ],
   imports: [
     CommonModule,
-    LoginRoutingModule,
+    FormsModule,
     ReactiveFormsModule,
+    RegisterRoutingModule,
     MatProgressBarModule,
     MatCardModule,
     MatToolbarModule,
     MatFormFieldModule,
     MatButtonModule,
     MatInputModule
-  ],
-  exports: [
-    FormsModule
   ]
 })
-export class LoginModule { }
+export class RegisterModule { }
