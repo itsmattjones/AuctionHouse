@@ -7,11 +7,15 @@ import { AuthenticationService } from '../services/authentication.service';
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
-    constructor(private authenticationService: AuthenticationService) { }
+    private isLoggedIn: boolean;
+
+    constructor(private authenticationService: AuthenticationService) { 
+        this.authenticationService.isLoggedIn.subscribe(val => this.isLoggedIn = val);
+    }
 
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         return next.handle(request).pipe(catchError(err => {
-            if (err.status == 401 && this.authenticationService.isLoggedIn()) {
+            if (err.status == 401 && this.isLoggedIn) {
                 this.authenticationService.refreshToken().pipe(
                     switchMap(() => {
                         return next.handle(request);

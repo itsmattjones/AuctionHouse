@@ -7,17 +7,7 @@ import { AuthenticationService } from '../../services/authentication.service';
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent implements OnInit {
+  constructor(public authenticationService: AuthenticationService) { }
 
-  constructor(private authenticationService: AuthenticationService) { }
-
-  ngOnInit(): void {
-  }
-
-  public isLoggedIn() {
-    this.authenticationService.isLoggedIn();
-  }
-
-  logout() {
-    this.authenticationService.logout();
-  }
+  ngOnInit(): void {}
 }

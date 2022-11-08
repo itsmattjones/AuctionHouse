@@ -8,28 +8,30 @@
       <h1>Login Form</h1>
 
       <mat-card-content>
-        <!-- email -->
         <mat-form-field class="max-width">
-          <input matInput type="text" formControlName="username" placeholder="Username" [ngClass]="{ 'is-invalid': submitted && loginForm.controls['username'].errors }" autofocus required>
+          <input matInput type="text" formControlName="email" placeholder="Email" autofocus required>
         </mat-form-field>
-        <mat-error *ngIf="submitted && loginForm.controls" class="form-val-hint">
-            <div *ngIf="loginForm.controls">Username is required</div>
+        <mat-error *ngIf="loginForm.controls['email'].invalid && (loginForm.controls['email'].dirty || loginForm.controls['email'].touched)" class="form-val-hint">
+            <div *ngIf="loginForm.get('email')?.hasError('required')">Username is required</div>
         </mat-error>
 
         <div class="h-space"></div>
 
-        <!-- password -->
         <mat-form-field class="max-width">
-          <input matInput type="password" formControlName="password" placeholder="Password" class="form-control" [ngClass]="{ 'is-invalid': submitted && loginForm.controls }" required>
+          <input matInput type="password" formControlName="password" placeholder="Password" class="form-control" required>
         </mat-form-field>
-        <mat-error *ngIf="submitted && loginForm.controls" class="form-val-hint">
-            <div *ngIf="loginForm.controls">Password is required</div>
+        <mat-error *ngIf="loginForm.controls['password'].invalid && (loginForm.controls['password'].dirty || loginForm.controls['password'].touched)" class="form-val-hint">
+            <div *ngIf="loginForm.get('password')?.hasError('required')">Password is required</div>
         </mat-error>
 
         <div class="h-space"></div>
 
         <button mat-raised-button type="submit" color="accent" class="max-width" [disabled]="loading">Login</button>
       </mat-card-content>
+
+      <div *ngIf="error" style="display: flex; justify-content: center; color: red;">
+        {{ error }}
+      </div>
     </mat-card>
   </form>
 </div>

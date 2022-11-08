@@ -7,13 +7,16 @@ import { AuthenticationService } from '../services/authentication.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-    constructor(private authenticationService: AuthenticationService) { }
+    private isLoggedIn: boolean;
+
+    constructor(private authenticationService: AuthenticationService) {
+        this.authenticationService.isLoggedIn.subscribe(val => this.isLoggedIn = val);
+     }
 
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        const isLoggedIn = this.authenticationService.isLoggedIn();
         const isApiUrl = request.url.startsWith(environment.apiUrl);
 
-        if (isLoggedIn && isApiUrl) {
+        if (isApiUrl && this.isLoggedIn) {
             request = request.clone({
                 withCredentials: true,
                 setHeaders: { 

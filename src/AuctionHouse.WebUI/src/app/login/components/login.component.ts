@@ -12,7 +12,6 @@ import { AuthenticationService } from '../../core/services/authentication.servic
 export class LoginComponent implements OnInit {
     loginForm: FormGroup;
     loading = false;
-    submitted = false;
     returnUrl: string;
     error = '';
 
@@ -21,31 +20,27 @@ export class LoginComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private authenticationService: AuthenticationService
-    ) { 
-        if (this.authenticationService.isLoggedIn()) { 
-            this.router.navigate(['/']);
-        }
-    }
+    ) { }
 
     ngOnInit() {
         this.loginForm = this.formBuilder.group({
-            username: ['', Validators.required],
+            email: ['', Validators.required],
             password: ['', Validators.required]
         });
 
-        // get return url from route parameters or default to '/'
-        this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+        // get return url from route parameters or default to '/dashboard'
+        this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
     }
 
     onSubmit() {
-        this.submitted = true;
+        this.error = '';
 
         if (this.loginForm.invalid) {
             return;
         }
 
         this.loading = true;
-        this.authenticationService.login(this.loginForm.controls['username'].value, this.loginForm.controls['password'].value)
+        this.authenticationService.login(this.loginForm.controls['email'].value, this.loginForm.controls['password'].value)
             .pipe(first())
             .subscribe(
                 data => {
