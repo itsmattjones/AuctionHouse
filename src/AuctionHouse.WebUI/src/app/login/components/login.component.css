@@ -1,0 +1,22 @@
+.card-container {
+  padding-top: 50px;
+  display: flex;
+  justify-content: center;
+}
+
+h1 {
+  text-align: center;
+}
+
+.mat-card {
+    padding: 50px;
+}
+
+.h-space {
+    padding-top: 5px;
+}
+
+.mat-raised-button {
+    display: flex;
+    margin: auto;
+}

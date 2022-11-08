@@ -1,0 +1,48 @@
+<div [hidden]="!loading" style="margin-top: -5px;">
+    <mat-progress-bar mode="indeterminate" color="accent"></mat-progress-bar>
+</div>
+  
+<div class="card-container">
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <mat-card>
+      <h1>Registration</h1>
+
+      <mat-card-content>
+        <mat-form-field class="max-width">
+          <input matInput id="email" formControlName="email" placeholder="Email" required autofocus>
+        </mat-form-field>
+        <mat-error *ngIf="registerForm.controls['email'].invalid && (registerForm.controls['email'].dirty || registerForm.controls['email'].touched)" class="form-val-hint">
+            <div *ngIf="registerForm.get('email')?.hasError('email')">Must be a valid email</div>
+            <div *ngIf="registerForm.get('email')?.hasError('required')">Email is required</div>
+        </mat-error>
+
+        <div class="h-space"></div>
+
+        <mat-form-field class="max-width">
+          <input matInput id="username" formControlName="username" placeholder="Username" required>
+        </mat-form-field>
+        <mat-error *ngIf="registerForm.controls['username'].invalid && (registerForm.controls['username'].dirty || registerForm.controls['username'].touched)" class="form-val-hint">
+            <div *ngIf="registerForm.get('username')?.hasError('required')">Username is required</div>
+        </mat-error>
+
+        <div class="h-space"></div>
+
+        <mat-form-field class="max-width">
+          <input matInput type="password" id="password" formControlName="password" placeholder="Password" required>
+        </mat-form-field>
+        <mat-error *ngIf="registerForm.controls['password'].invalid && (registerForm.controls['password'].dirty || registerForm.controls['password'].touched)" class="form-val-hint">
+            <div *ngIf="registerForm.get('password')?.hasError('minlength')">Password not long enough</div>
+            <div *ngIf="registerForm.get('password')?.hasError('required')">Password is required</div>
+        </mat-error>
+
+        <div class="h-space"></div>
+
+        <button mat-raised-button type="submit" color="accent" class="max-width" [disabled]="loading">Register</button>
+      </mat-card-content>
+
+      <div *ngIf="error" style="display: flex; justify-content: center; color: red;">
+        {{ error }}
+      </div>
+    </mat-card>
+  </form>
+</div>
