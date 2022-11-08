@@ -8,48 +8,41 @@
       <h1>Registration</h1>
 
       <mat-card-content>
-        <!-- email -->
         <mat-form-field class="max-width">
-          <input matInput id="email" formControlName="email" placeholder="Email" [ngClass]="{ 'is-invalid': submitted && registerForm.controls['email'].errors }" required>
+          <input matInput id="email" formControlName="email" placeholder="Email" required autofocus>
         </mat-form-field>
-        <mat-error *ngIf="submitted && registerForm.controls" class="form-val-hint">
-            <div *ngIf="registerForm.controls">Email is required</div>
+        <mat-error *ngIf="registerForm.controls['email'].invalid && (registerForm.controls['email'].dirty || registerForm.controls['email'].touched)" class="form-val-hint">
+            <div *ngIf="registerForm.get('email')?.hasError('email')">Must be a valid email</div>
+            <div *ngIf="registerForm.get('email')?.hasError('required')">Email is required</div>
         </mat-error>
 
         <div class="h-space"></div>
 
-        <!-- username -->
         <mat-form-field class="max-width">
-          <input matInput id="username" formControlName="username" placeholder="Username" [ngClass]="{ 'is-invalid': submitted && registerForm.controls['username'].errors }" autofocus required>
+          <input matInput id="username" formControlName="username" placeholder="Username" required>
         </mat-form-field>
-        <mat-error *ngIf="submitted && registerForm.controls" class="form-val-hint">
-            <div *ngIf="registerForm.controls">Username is required</div>
+        <mat-error *ngIf="registerForm.controls['username'].invalid && (registerForm.controls['username'].dirty || registerForm.controls['username'].touched)" class="form-val-hint">
+            <div *ngIf="registerForm.get('username')?.hasError('required')">Username is required</div>
         </mat-error>
 
         <div class="h-space"></div>
 
-        <!-- password -->
         <mat-form-field class="max-width">
-          <input matInput type="password" id="password" formControlName="password" placeholder="Password" [ngClass]="{ 'is-invalid': submitted && registerForm.controls['password'].errors }" required>
+          <input matInput type="password" id="password" formControlName="password" placeholder="Password" required>
         </mat-form-field>
-        <mat-error *ngIf="submitted && registerForm.controls" class="form-val-hint">
-            <div *ngIf="registerForm.controls">Password is required</div>
-        </mat-error>
-
-        <div class="h-space"></div>
-
-        <!-- confirm password -->
-        <mat-form-field class="max-width">
-          <input matInput type="password" id="confirmPassword" formControlName="confirmPassword" placeholder="Confirm Password" [ngClass]="{ 'is-invalid': submitted && registerForm.controls['confirmPassword'].errors }" required>
-        </mat-form-field>
-        <mat-error *ngIf="submitted && registerForm.controls" class="form-val-hint">
-            <div *ngIf="registerForm.controls">Please confirm your password</div>
+        <mat-error *ngIf="registerForm.controls['password'].invalid && (registerForm.controls['password'].dirty || registerForm.controls['password'].touched)" class="form-val-hint">
+            <div *ngIf="registerForm.get('password')?.hasError('minlength')">Password not long enough</div>
+            <div *ngIf="registerForm.get('password')?.hasError('required')">Password is required</div>
         </mat-error>
 
         <div class="h-space"></div>
 
         <button mat-raised-button type="submit" color="accent" class="max-width" [disabled]="loading">Register</button>
       </mat-card-content>
+
+      <div *ngIf="error" style="display: flex; justify-content: center; color: red;">
+        {{ error }}
+      </div>
     </mat-card>
   </form>
 </div>
