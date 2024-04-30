@@ -1,10 +1,9 @@
+namespace AuctionHouse.Application.Users.Commands.RefreshToken;
+
 using MediatR;
 
-namespace AuctionHouse.Application.Users.Commands.RefreshToken
+public class RefreshTokenCommand : IRequest<RefreshTokenResponseDto>
 {
-    public class RefreshTokenCommand : IRequest<RefreshTokenResponseDto>
-    {
-        public string Token { get; set; }
-        public string RefreshToken { get; set; }
-    }
+    public string Token { get; set; }
+    public string RefreshToken { get; set; }
 }

@@ -1,13 +1,12 @@
+namespace AuctionHouse.Application.Users.Commands.UpdateUser;
+
 using FluentValidation;
 
-namespace AuctionHouse.Application.Users.Commands.UpdateUser
+public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
 {
-    public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
+    public UpdateUserCommandValidator()
     {
-        public UpdateUserCommandValidator()
-        {
-            RuleFor(u => u.Email)
-                .EmailAddress();
-        }
+        RuleFor(u => u.Email)
+            .EmailAddress();
     }
 }

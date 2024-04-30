@@ -1,8 +1,7 @@
+namespace AuctionHouse.Application.Users.Commands.RevokeToken;
+
 using MediatR;
 
-namespace AuctionHouse.Application.Users.Commands.RevokeToken
+public class RevokeTokenCommand : IRequest
 {
-    public class RevokeTokenCommand : IRequest
-    {
-    }
 }

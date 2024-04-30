@@ -1,17 +1,16 @@
+namespace AuctionHouse.Application.Users.Commands.LoginUser;
+
 using FluentValidation;
 
-namespace AuctionHouse.Application.Users.Commands.LoginUser
+public class LoginUserCommandValidator : AbstractValidator<LoginUserCommand>
 {
-    public class LoginUserCommandValidator : AbstractValidator<LoginUserCommand>
+    public LoginUserCommandValidator()
     {
-        public LoginUserCommandValidator()
-        {
-            RuleFor(u => u.Email)
-                .NotEmpty()
-                .EmailAddress();
+        RuleFor(u => u.Email)
+            .NotEmpty()
+            .EmailAddress();
 
-            RuleFor(u => u.Password)
-                .NotEmpty();
-        }
+        RuleFor(u => u.Password)
+            .NotEmpty();
     }
 }
