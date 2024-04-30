@@ -1,16 +1,15 @@
+namespace AuctionHouse.Application.Users.Commands.RefreshToken;
+
 using FluentValidation;
 
-namespace AuctionHouse.Application.Users.Commands.RefreshToken
+public class RefreshTokenCommandValidator : AbstractValidator<RefreshTokenCommand>
 {
-    public class RefreshTokenCommandValidator : AbstractValidator<RefreshTokenCommand>
+    public RefreshTokenCommandValidator()
     {
-        public RefreshTokenCommandValidator()
-        {
-            RuleFor(t => t.Token)
-                .NotEmpty();
+        RuleFor(t => t.Token)
+            .NotEmpty();
 
-            RuleFor(t => t.RefreshToken)
-                .NotEmpty();
-        }
+        RuleFor(t => t.RefreshToken)
+            .NotEmpty();
     }
 }

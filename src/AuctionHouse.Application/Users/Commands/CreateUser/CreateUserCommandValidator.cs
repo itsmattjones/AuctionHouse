@@ -1,21 +1,19 @@
+namespace AuctionHouse.Application.Users.Commands.CreateUser;
+
 using FluentValidation;
 
-namespace AuctionHouse.Application.Users.Commands.CreateUser
+public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 {
-
-    public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
+    public CreateUserCommandValidator()
     {
-        public CreateUserCommandValidator()
-        {
-            RuleFor(u => u.Email)
-                .NotEmpty()
-                .EmailAddress();
+        RuleFor(u => u.Email)
+            .NotEmpty()
+            .EmailAddress();
 
-            RuleFor(u => u.Username)
-                .NotEmpty();
+        RuleFor(u => u.Username)
+            .NotEmpty();
 
-            RuleFor(u => u.Password)
-                .NotEmpty();
-        }
+        RuleFor(u => u.Password)
+            .NotEmpty();
     }
 }

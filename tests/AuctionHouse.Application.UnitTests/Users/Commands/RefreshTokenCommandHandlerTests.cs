@@ -1,3 +1,5 @@
+namespace AuctionHouse.Application.UnitTests.Users.Commands;
+
 using System;
 using System.Security.Claims;
 using System.Threading;
@@ -12,85 +14,82 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace AuctionHouse.Application.UnitTests.Users.Commands
+public class RefreshTokenCommandHandlerTest
 {
-    public class RefreshTokenCommandHandlerTest
+    [Fact]
+    public async Task RefreshTokenCommandHandler_ShouldThrowRefreshTokenException_WhenTheTokenUserCouldNotBeFound()
     {
-        [Fact]
-        public async Task RefreshTokenCommandHandler_ShouldThrowRefreshTokenException_WhenTheTokenUserCouldNotBeFound()
-        {
-            var mockTokenService = new Mock<ITokenService>();
-            var mockDateTime = new Mock<IDateTime>();
-            var mockLogger = new Mock<ILogger<RefreshTokenCommandHandler>>();
-            var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+        var mockTokenService = new Mock<ITokenService>();
+        var mockDateTime = new Mock<IDateTime>();
+        var mockLogger = new Mock<ILogger<RefreshTokenCommandHandler>>();
+        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
 
-            mockTokenService.Setup(x => x.GetPrincipalFromExpiredToken(It.IsAny<string>())).Returns(new ClaimsPrincipal());
+        mockTokenService.Setup(x => x.GetPrincipalFromExpiredToken(It.IsAny<string>())).Returns(new ClaimsPrincipal());
 
-            var handler = new RefreshTokenCommandHandler(mockTokenService.Object, mockUserManager.Object, mockDateTime.Object, mockLogger.Object);
-            var action = async() => await handler.Handle(new RefreshTokenCommand { Token = "TestToken1", RefreshToken = "TestToken2" }, CancellationToken.None);
+        var handler = new RefreshTokenCommandHandler(mockTokenService.Object, mockUserManager.Object, mockDateTime.Object, mockLogger.Object);
+        var action = async() => await handler.Handle(new RefreshTokenCommand { Token = "TestToken1", RefreshToken = "TestToken2" }, CancellationToken.None);
 
-            await action.Should().ThrowAsync<RefreshTokenException>().WithMessage("Could not find user associated with the provided tokens.");
-        }
+        await action.Should().ThrowAsync<RefreshTokenException>().WithMessage("Could not find user associated with the provided tokens.");
+    }
 
-        [Fact]
-        public async Task RefreshTokenCommandHandler_ShouldThrowRefreshTokenException_WhenTheRefreshTokenUserCouldNotBeFound()
-        {
-            var mockTokenService = new Mock<ITokenService>();
-            var mockDateTime = new Mock<IDateTime>();
-            var mockLogger = new Mock<ILogger<RefreshTokenCommandHandler>>();
-            var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+    [Fact]
+    public async Task RefreshTokenCommandHandler_ShouldThrowRefreshTokenException_WhenTheRefreshTokenUserCouldNotBeFound()
+    {
+        var mockTokenService = new Mock<ITokenService>();
+        var mockDateTime = new Mock<IDateTime>();
+        var mockLogger = new Mock<ILogger<RefreshTokenCommandHandler>>();
+        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
 
-            mockTokenService.Setup(x => x.GetPrincipalFromExpiredToken(It.IsAny<string>())).Returns(new ClaimsPrincipal());
-            mockUserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(new User { RefreshToken = "BadToken" });
+        mockTokenService.Setup(x => x.GetPrincipalFromExpiredToken(It.IsAny<string>())).Returns(new ClaimsPrincipal());
+        mockUserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(new User { RefreshToken = "BadToken" });
 
-            var handler = new RefreshTokenCommandHandler(mockTokenService.Object, mockUserManager.Object, mockDateTime.Object, mockLogger.Object);
-            var action = async() => await handler.Handle(new RefreshTokenCommand { Token = "TestToken1", RefreshToken = "TestToken2" }, CancellationToken.None);
+        var handler = new RefreshTokenCommandHandler(mockTokenService.Object, mockUserManager.Object, mockDateTime.Object, mockLogger.Object);
+        var action = async() => await handler.Handle(new RefreshTokenCommand { Token = "TestToken1", RefreshToken = "TestToken2" }, CancellationToken.None);
 
-            await action.Should().ThrowAsync<RefreshTokenException>().WithMessage("Could not find user associated with the provided tokens.");
-        }
+        await action.Should().ThrowAsync<RefreshTokenException>().WithMessage("Could not find user associated with the provided tokens.");
+    }
 
-        [Fact]
-        public async Task RefreshTokenCommandHandler_ShouldThrowRefreshTokenException_WhenTheRefreshTokenHasExpired()
-        {
-            var mockTokenService = new Mock<ITokenService>();
-            var mockDateTime = new Mock<IDateTime>();
-            var mockLogger = new Mock<ILogger<RefreshTokenCommandHandler>>();
-            var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+    [Fact]
+    public async Task RefreshTokenCommandHandler_ShouldThrowRefreshTokenException_WhenTheRefreshTokenHasExpired()
+    {
+        var mockTokenService = new Mock<ITokenService>();
+        var mockDateTime = new Mock<IDateTime>();
+        var mockLogger = new Mock<ILogger<RefreshTokenCommandHandler>>();
+        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
 
-            mockTokenService.Setup(x => x.GetPrincipalFromExpiredToken(It.IsAny<string>())).Returns(new ClaimsPrincipal());
-            mockUserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(new User { RefreshToken = "TestToken2", RefreshTokenExpiry = new DateTime(2022, 10, 16) });
-            mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
+        mockTokenService.Setup(x => x.GetPrincipalFromExpiredToken(It.IsAny<string>())).Returns(new ClaimsPrincipal());
+        mockUserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(new User { RefreshToken = "TestToken2", RefreshTokenExpiry = new DateTime(2022, 10, 16) });
+        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
-            var handler = new RefreshTokenCommandHandler(mockTokenService.Object, mockUserManager.Object, mockDateTime.Object, mockLogger.Object);
-            var action = async() => await handler.Handle(new RefreshTokenCommand { Token = "TestToken1", RefreshToken = "TestToken2" }, CancellationToken.None);
+        var handler = new RefreshTokenCommandHandler(mockTokenService.Object, mockUserManager.Object, mockDateTime.Object, mockLogger.Object);
+        var action = async() => await handler.Handle(new RefreshTokenCommand { Token = "TestToken1", RefreshToken = "TestToken2" }, CancellationToken.None);
 
-            await action.Should().ThrowAsync<RefreshTokenException>().WithMessage("The refresh token has expired.");
-        }
+        await action.Should().ThrowAsync<RefreshTokenException>().WithMessage("The refresh token has expired.");
+    }
 
-        [Fact]
-        public async Task RefreshTokenCommandHandler_ShouldProvideNewTokens_WhenTheRefreshTokenIsValid()
-        {
-            var user = new User { RefreshToken = "TestToken2", RefreshTokenExpiry = new DateTime(2022, 10, 18) };
+    [Fact]
+    public async Task RefreshTokenCommandHandler_ShouldProvideNewTokens_WhenTheRefreshTokenIsValid()
+    {
+        var user = new User { RefreshToken = "TestToken2", RefreshTokenExpiry = new DateTime(2022, 10, 18) };
 
-            var mockTokenService = new Mock<ITokenService>();
-            var mockDateTime = new Mock<IDateTime>();
-            var mockLogger = new Mock<ILogger<RefreshTokenCommandHandler>>();
-            var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+        var mockTokenService = new Mock<ITokenService>();
+        var mockDateTime = new Mock<IDateTime>();
+        var mockLogger = new Mock<ILogger<RefreshTokenCommandHandler>>();
+        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
 
-            mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
-            mockUserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(user);
-            mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
-            mockTokenService.Setup(x => x.GetPrincipalFromExpiredToken(It.IsAny<string>())).Returns(new ClaimsPrincipal());
-            mockTokenService.Setup(x => x.CreateToken(It.IsAny<User>())).Returns("TestToken3");
-            mockTokenService.Setup(x => x.CreateRefreshToken()).Returns("TestToken4");
+        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
+        mockUserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(user);
+        mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
+        mockTokenService.Setup(x => x.GetPrincipalFromExpiredToken(It.IsAny<string>())).Returns(new ClaimsPrincipal());
+        mockTokenService.Setup(x => x.CreateToken(It.IsAny<User>())).Returns("TestToken3");
+        mockTokenService.Setup(x => x.CreateRefreshToken()).Returns("TestToken4");
 
-            var handler = new RefreshTokenCommandHandler(mockTokenService.Object, mockUserManager.Object, mockDateTime.Object, mockLogger.Object);
-            var response = await handler.Handle(new RefreshTokenCommand { Token = "TestToken1", RefreshToken = "TestToken2" }, CancellationToken.None);
+        var handler = new RefreshTokenCommandHandler(mockTokenService.Object, mockUserManager.Object, mockDateTime.Object, mockLogger.Object);
+        var response = await handler.Handle(new RefreshTokenCommand { Token = "TestToken1", RefreshToken = "TestToken2" }, CancellationToken.None);
 
-            response.Token.Should().Be("TestToken3");
-            response.RefreshToken.Should().Be("TestToken4");
-            user.RefreshToken.Should().Be("TestToken4");
-            user.RefreshTokenExpiry.Should().Be(new DateTime(2022, 10, 19));
-        }
+        response.Token.Should().Be("TestToken3");
+        response.RefreshToken.Should().Be("TestToken4");
+        user.RefreshToken.Should().Be("TestToken4");
+        user.RefreshTokenExpiry.Should().Be(new DateTime(2022, 10, 19));
     }
 }

@@ -1,4 +1,6 @@
-﻿using AuctionHouse.Application.Common.Exceptions;
+﻿namespace AuctionHouse.WebAPI.Controllers;
+
+using AuctionHouse.Application.Common.Exceptions;
 using AuctionHouse.Application.Users.Commands.CreateUser;
 using AuctionHouse.Application.Users.Commands.LoginUser;
 using AuctionHouse.Application.Users.Commands.RefreshToken;
@@ -13,116 +15,113 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-namespace AuctionHouse.WebAPI.Controllers
+[Authorize]
+public class UserController : ApiControllerBase
 {
-    [Authorize]
-    public class UserController : ApiControllerBase
+    private readonly ILogger<UserController> _logger;
+
+    public UserController(ILogger<UserController> logger)
     {
-        private readonly ILogger<UserController> _logger;
+        _logger = logger;
+    }
 
-        public UserController(ILogger<UserController> logger)
+    [HttpGet]
+    [ProducesResponseType(typeof(CurrentUserDto), StatusCodes.Status200OK)]
+    public async Task<CurrentUserDto> RetrieveCurrentUser()
+    {
+        _logger.LogInformation("Retrieving current user");
+        return await Mediator.Send(new GetCurrentUserQuery());
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<IActionResult> Register([FromBody] CreateUserCommand command)
+    {
+        _logger.LogInformation("Creating user for request [{email}]", command.Email);
+
+        try
         {
-            _logger = logger;
+            return Ok(await Mediator.Send(command));
         }
-
-        [HttpGet]
-        [ProducesResponseType(typeof(CurrentUserDto), StatusCodes.Status200OK)]
-        public async Task<CurrentUserDto> RetrieveCurrentUser()
+        catch (Exception ex) when (ex is UserRegistrationException || ex is ValidationException)
         {
-            _logger.LogInformation("Retrieving current user");
-            return await Mediator.Send(new GetCurrentUserQuery());
+            return BadRequest(ex.Message);
         }
+    }
 
-        [HttpPost]
-        [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] CreateUserCommand command)
+    [HttpPut]
+    public async Task<IActionResult> Update([FromBody] UpdateUserCommand command)
+    {
+        _logger.LogInformation("Update user [{name}]", HttpContext.User.Identity?.Name ?? "unknown");
+
+        try
         {
-            _logger.LogInformation("Creating user for request [{email}]", command.Email);
-
-            try
-            {
-                return Ok(await Mediator.Send(command));
-            }
-            catch (Exception ex) when (ex is UserRegistrationException || ex is ValidationException)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Ok(await Mediator.Send(command));
         }
-
-        [HttpPut]
-        public async Task<IActionResult> Update([FromBody] UpdateUserCommand command)
+        catch (Exception ex) when (ex is UserUpdateException || ex is ValidationException)
         {
-            _logger.LogInformation("Update user [{name}]", HttpContext.User.Identity?.Name ?? "unknown");
-
-            try
-            {
-                return Ok(await Mediator.Send(command));
-            }
-            catch (Exception ex) when (ex is UserUpdateException || ex is ValidationException)
-            {
-                return BadRequest(ex.Message);
-            }
+            return BadRequest(ex.Message);
         }
+    }
 
-        [HttpPost(nameof(Revoke))]
-        public async Task<IActionResult> Revoke([FromBody] RevokeTokenCommand command)
+    [HttpPost(nameof(Revoke))]
+    public async Task<IActionResult> Revoke([FromBody] RevokeTokenCommand command)
+    {
+        _logger.LogInformation("Revoking refresh token for user [{name}]", HttpContext.User.Identity?.Name ?? "unknown");
+
+        try
         {
-            _logger.LogInformation("Revoking refresh token for user [{name}]", HttpContext.User.Identity?.Name ?? "unknown");
+            var response = await Mediator.Send(command);
 
-            try
-            {
-                var response = await Mediator.Send(command);
+            Response.Cookies.Delete("refreshToken", new CookieOptions { HttpOnly = true });
 
-                Response.Cookies.Delete("refreshToken", new CookieOptions { HttpOnly = true });
-
-                return Ok(response);
-            }
-            catch (RefreshTokenException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Ok(response);
         }
-
-        [HttpPost(nameof(Login))]
-        [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
+        catch (RefreshTokenException ex)
         {
-            _logger.LogInformation("Attempting login request for user [{email}]", command.Email);
-
-            try
-            {
-                var response = await Mediator.Send(command);
-
-                Response.Cookies.Append("refreshToken", response.RefreshToken,
-                    new CookieOptions { HttpOnly = true, Expires = DateTime.UtcNow.AddDays(7) });
-
-                return Ok(response);
-            }
-            catch (Exception ex) when (ex is UserLoginException || ex is ValidationException)
-            {
-                return BadRequest(ex.Message);
-            }
+            return BadRequest(ex.Message);
         }
+    }
 
-        [HttpPost(nameof(Refresh))]
-        [AllowAnonymous]
-        public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
+    [HttpPost(nameof(Login))]
+    [AllowAnonymous]
+    public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
+    {
+        _logger.LogInformation("Attempting login request for user [{email}]", command.Email);
+
+        try
         {
-            _logger.LogInformation("Refreshing token for user [{name}]", HttpContext.User.Identity?.Name ?? "unknown");
+            var response = await Mediator.Send(command);
 
-            try
-            {
-                var response = await Mediator.Send(command);
+            Response.Cookies.Append("refreshToken", response.RefreshToken,
+                new CookieOptions { HttpOnly = true, Expires = DateTime.UtcNow.AddDays(7) });
 
-                Response.Cookies.Append("refreshToken", response.RefreshToken,
-                    new CookieOptions { HttpOnly = true, Expires = DateTime.UtcNow.AddDays(7) });
+            return Ok(response);
+        }
+        catch (Exception ex) when (ex is UserLoginException || ex is ValidationException)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 
-                return Ok(response);
-            }
-            catch (Exception ex) when (ex is RefreshTokenException || ex is ValidationException)
-            {
-                return BadRequest(ex.Message);
-            }
+    [HttpPost(nameof(Refresh))]
+    [AllowAnonymous]
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
+    {
+        _logger.LogInformation("Refreshing token for user [{name}]", HttpContext.User.Identity?.Name ?? "unknown");
+
+        try
+        {
+            var response = await Mediator.Send(command);
+
+            Response.Cookies.Append("refreshToken", response.RefreshToken,
+                new CookieOptions { HttpOnly = true, Expires = DateTime.UtcNow.AddDays(7) });
+
+            return Ok(response);
+        }
+        catch (Exception ex) when (ex is RefreshTokenException || ex is ValidationException)
+        {
+            return BadRequest(ex.Message);
         }
     }
 }

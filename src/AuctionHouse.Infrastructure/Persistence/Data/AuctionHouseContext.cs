@@ -1,12 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿namespace AuctionHouse.Infrastructure.Persistence.Data;
 
-namespace AuctionHouse.Infrastructure.Persistence.Data
+using Microsoft.EntityFrameworkCore;
+
+public class AuctionHouseContext : DbContext
 {
-    public class AuctionHouseContext : DbContext
+    public AuctionHouseContext(DbContextOptions<AuctionHouseContext> options)
+        : base(options)
     {
-        public AuctionHouseContext(DbContextOptions<AuctionHouseContext> options)
-            : base(options)
-        {
-        }
     }
 }
