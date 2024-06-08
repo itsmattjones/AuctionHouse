@@ -24,10 +24,11 @@ public class GetCurrentUserQueryTest
         mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
 
         var handler = new GetCurrentUserQueryHandler(mockCurrentUserContext.Object, mapper);
-        var response = await handler.Handle(new GetCurrentUserQuery(), CancellationToken.None);
+        var result = await handler.Handle(new GetCurrentUserQuery(), CancellationToken.None);
 
-        response.Email.Should().Be("test@gmail.com");
-        response.Username.Should().Be("test");
-        response.ProfileImageUrl.Should().Be("test.com/image.png");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Email.Should().Be("test@gmail.com");
+        result.Value.Username.Should().Be("test");
+        result.Value.ProfileImageUrl.Should().Be("test.com/image.png");
     }
 }

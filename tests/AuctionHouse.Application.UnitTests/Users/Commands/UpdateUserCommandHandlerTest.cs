@@ -3,6 +3,7 @@ namespace AuctionHouse.Application.UnitTests.Users.Commands;
 using AuctionHouse.Application.Common.Exceptions;
 using AuctionHouse.Application.Common.Interfaces;
 using AuctionHouse.Application.Users.Commands.UpdateUser;
+using AuctionHouse.Domain.Common.Result;
 using AuctionHouse.Domain.Entities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
@@ -14,25 +15,6 @@ using Xunit;
 
 public class UpdateUserCommandHandlerTest
 {
-    [Fact]
-    public async Task UpdateUserCommandHandler_ShouldThrowUserUpdateException_WhenTheUpdateContainsAnExistingEmail()
-    {
-        var user = new User() { Email = "someone@gmail.com" };
-
-        var mockDateTime = new Mock<IDateTime>();
-        var mockCurrentUserContext = new Mock<ICurrentUserContext>();
-        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
-
-        mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
-        mockUserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(new User());
-        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
-
-        var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        var action = async () => await handler.Handle(new UpdateUserCommand { Email = "test@gmail.com" }, CancellationToken.None);
-
-        await action.Should().ThrowAsync<UserUpdateException>().WithMessage("Email test@gmail.com is already in use");
-    }
-
     [Fact]
     public async Task UpdateUserCommandHandler_ShouldUpdateTheUsersEmail_WhenTheEmailDoesNotExist()
     {
@@ -53,22 +35,24 @@ public class UpdateUserCommandHandlerTest
     }
 
     [Fact]
-    public async Task UpdateUserCommandHandler_ShouldThrowUserUpdateException_WhenTheUpdateContainsAnExistingUsername()
+    public async Task UpdateUserCommandHandler_ShouldThrowUserUpdateException_WhenTheUpdateContainsAnExistingEmail()
     {
-        var user = new User() { UserName = "User"};
+        var user = new User() { Email = "someone@gmail.com" };
 
         var mockDateTime = new Mock<IDateTime>();
         var mockCurrentUserContext = new Mock<ICurrentUserContext>();
         var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
 
         mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
-        mockUserManager.Setup(x => x.FindByNameAsync(It.IsAny<string>())).ReturnsAsync(new User());
+        mockUserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(new User());
         mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
         var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        var action = async () => await handler.Handle(new UpdateUserCommand { Username = "testUser" }, CancellationToken.None);
+        var result = await handler.Handle(new UpdateUserCommand { Email = "test@gmail.com" }, CancellationToken.None);
 
-        await action.Should().ThrowAsync<UserUpdateException>().WithMessage("Username testUser is already in use");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(Error.Invalid);
+        result.ErrorMessages.Should().ContainSingle("Email test@gmail.com is already in use");
     }
 
     [Fact]
@@ -85,9 +69,51 @@ public class UpdateUserCommandHandlerTest
         mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
         var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        await handler.Handle(new UpdateUserCommand { Username = "testUser" }, CancellationToken.None);
+        var result = await handler.Handle(new UpdateUserCommand { Username = "testUser" }, CancellationToken.None);
 
+        result.IsSuccess.Should().BeTrue();
         user.UserName.Should().Be("testUser");
+    }
+
+    [Fact]
+    public async Task UpdateUserCommandHandler_ShouldThrowUserUpdateException_WhenTheUpdateContainsAnExistingUsername()
+    {
+        var user = new User() { UserName = "User"};
+
+        var mockDateTime = new Mock<IDateTime>();
+        var mockCurrentUserContext = new Mock<ICurrentUserContext>();
+        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+
+        mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
+        mockUserManager.Setup(x => x.FindByNameAsync(It.IsAny<string>())).ReturnsAsync(new User());
+        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
+
+        var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
+        var result = await handler.Handle(new UpdateUserCommand { Username = "testUser" }, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(Error.Invalid);
+        result.ErrorMessages.Should().ContainSingle("Username testUser is already in use");
+    }
+
+    [Fact]
+    public async Task UpdateUserCommandHandler_ShouldUpdateTheUsersProfileImageUrl_WhenTheUpdateContainsANewProfileImageUrl()
+    {
+        var user = new User() { ProfileImageUrl = "http://test.com/image.jpg" };
+
+        var mockDateTime = new Mock<IDateTime>();
+        var mockCurrentUserContext = new Mock<ICurrentUserContext>();
+        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+
+        mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
+        mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
+        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
+
+        var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
+        var result = await handler.Handle(new UpdateUserCommand { ProfileImageUrl = "http://test.com/image2.png" }, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        user.ProfileImageUrl.Should().Be("http://test.com/image2.png");
     }
 
     [Fact]
@@ -106,28 +132,10 @@ public class UpdateUserCommandHandlerTest
         mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
         var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        await handler.Handle(new UpdateUserCommand { Password = "newPassword!123456" }, CancellationToken.None);
+        var result = await handler.Handle(new UpdateUserCommand { Password = "newPassword!123456" }, CancellationToken.None);
 
+        result.IsSuccess.Should().BeTrue();
         user.PasswordHash.Should().Be("hashednewPassword!123456");
-    }
-
-    [Fact]
-    public async Task UpdateUserCommandHandler_ShouldUpdateTheUsersProfileImageUrl_WhenTheUpdateContainsANewProfileImageUrl()
-    {
-        var user = new User() { ProfileImageUrl = "http://test.com/image.jpg" };
-
-        var mockDateTime = new Mock<IDateTime>();
-        var mockCurrentUserContext = new Mock<ICurrentUserContext>();
-        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
-
-        mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
-        mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
-        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
-
-        var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        await handler.Handle(new UpdateUserCommand { ProfileImageUrl = "http://test.com/image2.png" }, CancellationToken.None);
-
-        user.ProfileImageUrl.Should().Be("http://test.com/image2.png");
     }
 
     [Fact]
@@ -144,8 +152,9 @@ public class UpdateUserCommandHandlerTest
         mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
         var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        await handler.Handle(new UpdateUserCommand { Username = "test2" }, CancellationToken.None);
+        var result = await handler.Handle(new UpdateUserCommand { Username = "test2" }, CancellationToken.None);
 
+        result.IsSuccess.Should().BeTrue();
         user.RefreshTokenExpiry.Should().Be(new DateTime(2022, 10, 17));
     }
 }

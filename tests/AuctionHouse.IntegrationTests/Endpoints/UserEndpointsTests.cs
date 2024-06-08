@@ -1,4 +1,4 @@
-﻿namespace AuctionHouse.IntegrationTests.Controllers;
+﻿namespace AuctionHouse.IntegrationTests.Endpoints;
 
 using AuctionHouse.Application.Users.Commands.CreateUser;
 using AuctionHouse.Application.Users.Commands.LoginUser;
@@ -11,9 +11,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 
-public class UserControllerTests : IntegrationTest
+public class UserEndpointsTests : IntegrationTest
 {
-    public UserControllerTests(AuctionHouseWebApplicationFactory fixture)
+    public UserEndpointsTests(AuctionHouseWebApplicationFactory fixture)
         :base(fixture) { }
 
     [Fact]

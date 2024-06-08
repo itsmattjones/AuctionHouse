@@ -1,8 +1,8 @@
 namespace AuctionHouse.Application.UnitTests.Users.Commands;
 
-using AuctionHouse.Application.Common.Exceptions;
 using AuctionHouse.Application.Common.Interfaces;
 using AuctionHouse.Application.Users.Commands.LoginUser;
+using AuctionHouse.Domain.Common.Result;
 using AuctionHouse.Domain.Entities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
@@ -30,10 +30,11 @@ public class LoginUserCommandHandlerTest
         mockUserManager.Setup(x => x.CheckPasswordAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(true);
 
         var handler = new LoginUserCommandHandler(mockUserManager.Object, mockTokenService.Object, mockDateTimeService.Object, mockLogger.Object);
-        var response = await handler.Handle(new LoginUserCommand { Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
+        var result = await handler.Handle(new LoginUserCommand { Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
 
-        response.Token.Should().Be("TestToken1");
-        response.RefreshToken.Should().Be("TestToken2");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Token.Should().Be("TestToken1");
+        result.Value.RefreshToken.Should().Be("TestToken2");
     }
 
     [Fact]
@@ -50,9 +51,10 @@ public class LoginUserCommandHandlerTest
         mockUserManager.Setup(x => x.CheckPasswordAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(true);
 
         var handler = new LoginUserCommandHandler(mockUserManager.Object, mockTokenService.Object, mockDateTimeService.Object, mockLogger.Object);
-        var action = async () => await handler.Handle(new LoginUserCommand { Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
+        var result = await handler.Handle(new LoginUserCommand { Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
 
-        await action.Should().ThrowAsync<UserLoginException>().WithMessage("The provided credentials are incorrect!");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(Error.Invalid);
     }
 
     [Fact]
@@ -70,8 +72,9 @@ public class LoginUserCommandHandlerTest
         mockUserManager.Setup(x => x.CheckPasswordAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(false);
 
         var handler = new LoginUserCommandHandler(mockUserManager.Object, mockTokenService.Object, mockDateTimeService.Object, mockLogger.Object);
-        var action = async () => await handler.Handle(new LoginUserCommand { Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
+        var result = await handler.Handle(new LoginUserCommand { Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
 
-        await action.Should().ThrowAsync<UserLoginException>().WithMessage("The provided credentials are incorrect!");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(Error.Invalid);
     }
 }

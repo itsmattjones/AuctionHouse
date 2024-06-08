@@ -1,13 +1,14 @@
 namespace AuctionHouse.Application.Users.Commands.RevokeToken;
 
 using AuctionHouse.Application.Common.Interfaces;
+using AuctionHouse.Domain.Common.Result;
 using AuctionHouse.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class RevokeTokenCommandHandler : IRequestHandler<RevokeTokenCommand, Unit>
+public class RevokeTokenCommandHandler : IRequestHandler<RevokeTokenCommand, Result>
 {
     private readonly ICurrentUserContext _currentUserContext;
     private readonly UserManager<User> _userManager;
@@ -21,7 +22,7 @@ public class RevokeTokenCommandHandler : IRequestHandler<RevokeTokenCommand, Uni
         _dateTime = dateTime;
     }
 
-    public async Task<Unit> Handle(RevokeTokenCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(RevokeTokenCommand request, CancellationToken cancellationToken)
     {
         var currentUser = await _currentUserContext.GetCurrentUserContext();
 
@@ -29,6 +30,6 @@ public class RevokeTokenCommandHandler : IRequestHandler<RevokeTokenCommand, Uni
 
         await _userManager.UpdateAsync(currentUser);
 
-        return Unit.Value;
+        return Result.Success();
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace AuctionHouse.Application.Common.Mappers;
+namespace AuctionHouse.Application.Common.Mappers;
 
 using AuctionHouse.Application.Users.Queries.GetCurrentUser;
 using AuctionHouse.Domain.Entities;
