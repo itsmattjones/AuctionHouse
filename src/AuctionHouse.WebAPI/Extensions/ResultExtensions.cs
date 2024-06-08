@@ -17,7 +17,7 @@ public static class ResultExtensions
             statusCode: result.GetErrorStatusCode(),
             title: result.GetErrorTitle(),
             type: result.GetErrorType(),
-            extensions: new Dictionary<string, object>
+            extensions: new Dictionary<string, object?>
             {
                 { "errors", new [] { result.ErrorMessages }}
             }
@@ -28,7 +28,7 @@ public static class ResultExtensions
     {
         Error.Invalid => StatusCodes.Status400BadRequest,
         Error.NotFound => StatusCodes.Status400BadRequest,
-        Error.Conflict => StatusCodes.Status409Conflict,
+        Error.Conflict => StatusCodes.Status400BadRequest,
         Error.Critial => StatusCodes.Status500InternalServerError,
         _ => StatusCodes.Status500InternalServerError
     };
@@ -37,7 +37,7 @@ public static class ResultExtensions
     {
         Error.Invalid => HttpStatusCode.BadRequest.ToString(),
         Error.NotFound => HttpStatusCode.BadRequest.ToString(),
-        Error.Conflict => HttpStatusCode.Conflict.ToString(),
+        Error.Conflict => HttpStatusCode.BadRequest.ToString(),
         Error.Critial => HttpStatusCode.InternalServerError.ToString(),
         _ => HttpStatusCode.InternalServerError.ToString()
     };
@@ -46,7 +46,7 @@ public static class ResultExtensions
     {
         Error.Invalid => "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1",
         Error.NotFound => "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1",
-        Error.Conflict => "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.8",
+        Error.Conflict => "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1",
         Error.Critial => "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
         _ => "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1"
     };

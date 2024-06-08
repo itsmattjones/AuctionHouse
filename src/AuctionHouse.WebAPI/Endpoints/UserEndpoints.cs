@@ -19,28 +19,28 @@ public static class UserEndponints
 {
     public static void MapUserEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("user", async (ISender sender) =>
+        app.MapGet("api/user", async (ISender sender) =>
         {
             Result<CurrentUserDto> result = await sender.Send(new GetCurrentUserQuery());
 
             return result.IsSuccess ? Results.Ok(result.Value) : result.ToProblemDetails();
         });
 
-        app.MapPost("user", async (ISender sender, [FromBody] CreateUserCommand command) =>
+        app.MapPost("api/user", async (ISender sender, [FromBody] CreateUserCommand command) =>
         {
             Result result = await sender.Send(command);
 
             return result.IsSuccess ? Results.Ok() : result.ToProblemDetails();
         });
 
-        app.MapPut("user", async (ISender sender, [FromBody] UpdateUserCommand command) =>
+        app.MapPut("api/user", async (ISender sender, [FromBody] UpdateUserCommand command) =>
         {
             Result result = await sender.Send(command);
 
             return result.IsSuccess ? Results.Ok() : result.ToProblemDetails();
         });
 
-        app.MapPost("user/revoke", async (HttpContext context, ISender sender, [FromBody] RevokeTokenCommand command) =>
+        app.MapPost("api/user/revoke", async (HttpContext context, ISender sender, [FromBody] RevokeTokenCommand command) =>
         {
             Result result = await sender.Send(command);
 
@@ -52,7 +52,7 @@ public static class UserEndponints
             return Results.Ok();
         });
 
-        app.MapPost("user/login", async (HttpContext context, ISender sender, [FromBody] LoginUserCommand command) =>
+        app.MapPost("api/user/login", async (HttpContext context, ISender sender, [FromBody] LoginUserCommand command) =>
         {
             Result<TokenResponseDto> result = await sender.Send(command);
 
@@ -65,7 +65,7 @@ public static class UserEndponints
             return Results.Ok(result.Value);
         });
 
-        app.MapPost("user/refresh", async (HttpContext context, ISender sender, [FromBody] RefreshTokenCommand command) =>
+        app.MapPost("api/user/refresh", async (HttpContext context, ISender sender, [FromBody] RefreshTokenCommand command) =>
         {
             Result<RefreshTokenResponseDto> result = await sender.Send(command);
 
