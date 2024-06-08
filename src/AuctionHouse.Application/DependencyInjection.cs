@@ -1,6 +1,6 @@
 ﻿namespace AuctionHouse.Application;
 
-using AuctionHouse.Application.Common.Middleware;
+using AuctionHouse.Application.Common.Behaviours;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;

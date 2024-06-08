@@ -27,8 +27,9 @@ public class RevokeTokenCommandHandlerTest
         mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
 
         var handler = new RevokeTokenCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        await handler.Handle(new RevokeTokenCommand(), CancellationToken.None);
+        var result = await handler.Handle(new RevokeTokenCommand(), CancellationToken.None);
 
+        result.IsSuccess.Should().BeTrue();
         user.RefreshTokenExpiry.Should().Be(new DateTime(2022, 10, 17));
     }
 }

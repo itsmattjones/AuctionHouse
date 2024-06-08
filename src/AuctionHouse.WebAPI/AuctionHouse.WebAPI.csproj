@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <StartupObject>AuctionHouse.WebAPI.Program</StartupObject>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

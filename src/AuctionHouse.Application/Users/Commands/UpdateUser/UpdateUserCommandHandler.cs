@@ -1,7 +1,7 @@
 namespace AuctionHouse.Application.Users.Commands.UpdateUser;
 
-using AuctionHouse.Application.Common.Exceptions;
 using AuctionHouse.Application.Common.Interfaces;
+using AuctionHouse.Domain.Common.Result;
 using AuctionHouse.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -9,7 +9,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Unit>
+public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Result>
 {
     private readonly ICurrentUserContext _currentUserContext;
     private readonly UserManager<User> _userManager;
@@ -23,24 +23,24 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Unit>
         _dateTime = dateTime;
     }
 
-    public async Task<Unit> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
         var currentUser = await _currentUserContext.GetCurrentUserContext();
 
         if (IsRequestPropertyAvailableForUpdate(request.Email, currentUser.Email))
         {
             if (await _userManager.FindByEmailAsync(request.Email) is not null)
-                throw new UserUpdateException($"Email {request.Email} is already in use");
-            else
-                currentUser.Email = request.Email;
+                return Result.Failure(Error.Invalid, $"Email {request.Email} is already in use");
+
+            currentUser.Email = request.Email;
         }
 
         if (IsRequestPropertyAvailableForUpdate(request.Username, currentUser.UserName))
         {
             if (await _userManager.FindByNameAsync(request.Username) is not null)
-                throw new UserUpdateException($"Username {request.Username} is already in use");
-            else 
-                currentUser.UserName = request.Username;
+                return Result.Failure(Error.Invalid, $"Username {request.Username} is already in use");
+
+            currentUser.UserName = request.Username;
         }
 
         if (!string.IsNullOrWhiteSpace(request.Password))
@@ -55,7 +55,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Unit>
         currentUser.RefreshTokenExpiry = _dateTime.Now;
         await _userManager.UpdateAsync(currentUser);
 
-        return Unit.Value;
+        return Result.Success();
     }
 
     private static bool IsRequestPropertyAvailableForUpdate(string requestProperty, string currentProperty)

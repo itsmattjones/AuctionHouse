@@ -4,14 +4,14 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using AuctionHouse.Application.Common.Exceptions;
 using AuctionHouse.Application.Common.Interfaces;
+using AuctionHouse.Domain.Common.Result;
 using AuctionHouse.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
-public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, RefreshTokenResponseDto>
+public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, Result<RefreshTokenResponseDto>>
 {
     private readonly ILogger<RefreshTokenCommandHandler> _logger;
     private readonly UserManager<User> _userManager;
@@ -27,16 +27,16 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         _logger = logger;
     }
 
-    public async Task<RefreshTokenResponseDto> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+    public async Task<Result<RefreshTokenResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         var principal = _tokenService.GetPrincipalFromExpiredToken(request.Token);
         var currentUser = await _userManager.FindByEmailAsync(principal.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value);
 
         if (currentUser is null || currentUser.RefreshToken != request.RefreshToken)
-            throw new RefreshTokenException("Could not find user associated with the provided tokens.");
+            return Result.Failure<RefreshTokenResponseDto>(Error.Invalid, "Could not find user associated with the provided tokens.");
 
         if (currentUser.RefreshTokenExpiry <= _dateTime.Now)
-            throw new RefreshTokenException("The refresh token has expired.");
+            return Result.Failure<RefreshTokenResponseDto>(Error.Invalid, "The refresh token has expired");
 
         var accessToken = _tokenService.CreateToken(currentUser);
         var refreshToken = _tokenService.CreateRefreshToken();

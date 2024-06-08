@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AuctionHouse.Application.Common.Exceptions;
 using AuctionHouse.Application.Users.Commands.CreateUser;
+using AuctionHouse.Domain.Common.Result;
 using AuctionHouse.Domain.Entities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
@@ -25,8 +25,9 @@ public class CreateUserCommandHandlerTest
         mockUserManager.Setup(x => x.CreateAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success).Callback<User, string>((x, y) => users.Add(x));
 
         var handler = new CreateUserCommandHandler(mockUserManager.Object, mockLogger.Object);
-        await handler.Handle(new CreateUserCommand { Username = "test", Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
+        var result = await handler.Handle(new CreateUserCommand { Username = "test", Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
 
+        result.IsSuccess.Should().BeTrue();
         users.Should().HaveCount(1);
         users.First().UserName.Should().Be("test");
         users.First().Email.Should().Be("test@gmail.com");
@@ -40,9 +41,11 @@ public class CreateUserCommandHandlerTest
         mockUserManager.Setup(x => x.FindByNameAsync(It.IsAny<string>())).ReturnsAsync(new User());
 
         var handler = new CreateUserCommandHandler(mockUserManager.Object, mockLogger.Object);
-        var action = async () => await handler.Handle(new CreateUserCommand { Username = "test", Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
+        var result = await handler.Handle(new CreateUserCommand { Username = "test", Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
 
-        await action.Should().ThrowAsync<UserRegistrationException>().WithMessage("Username test is already in use");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(Error.Conflict);
+        result.ErrorMessages.Should().ContainSingle("Username test is already in use");
     }
 
     [Fact]
@@ -53,9 +56,11 @@ public class CreateUserCommandHandlerTest
         mockUserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(new User());
 
         var handler = new CreateUserCommandHandler(mockUserManager.Object, mockLogger.Object);
-        var action = async () => await handler.Handle(new CreateUserCommand { Username = "test", Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
+        var result = await handler.Handle(new CreateUserCommand { Username = "test", Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
 
-        await action.Should().ThrowAsync<UserRegistrationException>().WithMessage("Email test@gmail.com is already in use");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(Error.Conflict);
+        result.ErrorMessages.Should().ContainSingle("Email test@gmail.com is already in use");
     }
 
     [Fact]
@@ -63,13 +68,13 @@ public class CreateUserCommandHandlerTest
     {
         var mockLogger = new Mock<ILogger<CreateUserCommandHandler>>();
         var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
-        mockUserManager.Setup(x => x.CreateAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed(new IdentityError { Code = "99", Description = "error" }));
+        mockUserManager.Setup(x => x.CreateAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed(new IdentityError { Code = "99", Description = "some error" }));
 
         var handler = new CreateUserCommandHandler(mockUserManager.Object, mockLogger.Object);
-        var action = async () => await handler.Handle(new CreateUserCommand { Username = "test", Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
+        var result = await handler.Handle(new CreateUserCommand { Username = "test", Email = "test@gmail.com", Password = "password12345" }, CancellationToken.None);
 
-        var exception = await action.Should().ThrowAsync<UserRegistrationException>();
-        exception.And.Message.Should().Be("Could not create user [test]");
-        exception.And.Data["errors"].As<string[]>().Should().Contain("99: error");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(Error.Critial);
+        result.ErrorMessages.Should().ContainSingle("Could not create user [test]");
     }
 }

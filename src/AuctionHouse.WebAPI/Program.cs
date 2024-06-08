@@ -5,6 +5,8 @@ using AuctionHouse.Application.Common.Interfaces;
 using AuctionHouse.Domain.Entities;
 using AuctionHouse.Infrastructure;
 using AuctionHouse.Infrastructure.Persistence.Identity;
+using AuctionHouse.WebAPI.Endpoints;
+using AuctionHouse.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -26,8 +28,8 @@ public class Program
         builder.Services.AddApplication();
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddTransient<ICurrentUserContext, CurrentUserContext>();
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddControllers();
         builder.Services.AddSwaggerGen();
 
         // Add Identity
@@ -67,10 +69,8 @@ public class Program
         });
 
         // Add authorization
-        builder.Services.AddAuthorization(options =>
-        {
-            options.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
-        });
+        builder.Services.AddAuthorizationBuilder()
+            .SetDefaultPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
         var app = builder.Build();
 
@@ -90,7 +90,7 @@ public class Program
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.MapControllers();
+        app.MapUserEndpoints();
         app.Run();
     }
 }

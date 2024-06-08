@@ -1,8 +1,8 @@
-﻿namespace AuctionHouse.Application.Common.Interfaces;
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
+namespace AuctionHouse.Application.Common.Interfaces;
 
 public interface IRepository<T> where T : class
 {

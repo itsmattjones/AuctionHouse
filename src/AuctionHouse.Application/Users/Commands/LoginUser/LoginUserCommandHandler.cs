@@ -2,14 +2,14 @@ namespace AuctionHouse.Application.Users.Commands.LoginUser;
 
 using System.Threading;
 using System.Threading.Tasks;
-using AuctionHouse.Application.Common.Exceptions;
 using AuctionHouse.Application.Common.Interfaces;
+using AuctionHouse.Domain.Common.Result;
 using AuctionHouse.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
-public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, TokenResponseDto>
+public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Result<TokenResponseDto>>
 {
     private readonly ILogger<LoginUserCommandHandler> _logger;
     private readonly UserManager<User> _userManager;
@@ -25,13 +25,13 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, TokenRe
         _logger = logger;
     }
 
-    public async Task<TokenResponseDto> Handle(LoginUserCommand request, CancellationToken cancellationToken)
+    public async Task<Result<TokenResponseDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
         if (await _userManager.FindByEmailAsync(request.Email.ToUpperInvariant()) is var existingUser && existingUser is null)
-            throw new UserLoginException();
+            return Result.Failure<TokenResponseDto>(Error.Invalid);
 
         if (!await _userManager.CheckPasswordAsync(existingUser, request.Password))
-            throw new UserLoginException();
+            return Result.Failure<TokenResponseDto>(Error.Invalid);
 
         var accessToken = _tokenService.CreateToken(existingUser);
         var refreshToken = _tokenService.CreateRefreshToken();

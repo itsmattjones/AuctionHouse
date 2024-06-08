@@ -1,6 +1,6 @@
-﻿namespace AuctionHouse.Application.Common.Interfaces;
+﻿using System;
 
-using System;
+namespace AuctionHouse.Application.Common.Interfaces;
 
 public interface IDateTime
 {

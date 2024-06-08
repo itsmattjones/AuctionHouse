@@ -1,7 +1,7 @@
-﻿namespace AuctionHouse.Domain.Entities;
-
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using System;
+
+namespace AuctionHouse.Domain.Entities;
 
 public class User : IdentityUser
 {

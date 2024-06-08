@@ -1,7 +1,7 @@
-﻿namespace AuctionHouse.Application.Common.Interfaces;
-
-using AuctionHouse.Domain.Entities;
+﻿using AuctionHouse.Domain.Entities;
 using System.Threading.Tasks;
+
+namespace AuctionHouse.Application.Common.Interfaces;
 
 public interface ICurrentUserContext
 {
