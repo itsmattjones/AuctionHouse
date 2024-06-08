@@ -42,7 +42,7 @@ public class AuctionHouseWebApplicationFactory : WebApplicationFactory<Program>
                 NormalizedUserName = "joebloggs".ToUpperInvariant(),
                 RefreshToken = "abcdefg123456789",
                 RefreshTokenExpiry = DateTime.UtcNow.AddHours(1),
-                SecurityStamp = "randomStamp",
+                SecurityStamp = "randomStamp"
             };
 
             testUser1.PasswordHash = new PasswordHasher<User>().HashPassword(testUser1, "password12345");
@@ -56,7 +56,7 @@ public class AuctionHouseWebApplicationFactory : WebApplicationFactory<Program>
                 NormalizedUserName = "davebloggs".ToUpperInvariant(),
                 RefreshToken = "abcdefghijk123456789",
                 RefreshTokenExpiry = DateTime.UtcNow.AddHours(1),
-                SecurityStamp = "randomStamp",
+                SecurityStamp = "randomStamp"
             };
 
             testUser2.PasswordHash = new PasswordHasher<User>().HashPassword(testUser2, "password12345");

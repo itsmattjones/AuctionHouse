@@ -72,6 +72,8 @@ public class Program
         builder.Services.AddAuthorizationBuilder()
             .SetDefaultPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
+        builder.Services.AddCors();
+
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())
