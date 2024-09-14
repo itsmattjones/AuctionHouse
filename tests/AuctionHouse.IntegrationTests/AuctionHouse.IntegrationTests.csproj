@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AuctionHouse.WebAPI\AuctionHouse.WebAPI.csproj" />
+    <ProjectReference Include="..\..\src\AuctionHouse.API\AuctionHouse.API.csproj" />
   </ItemGroup>
 
   <ItemGroup>
