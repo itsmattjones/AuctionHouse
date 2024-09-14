@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuctionHouse.WebAPI", "src\AuctionHouse.WebAPI\AuctionHouse.WebAPI.csproj", "{5AB2DEB2-4078-452B-8DB9-983F9AD55092}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E21F5EFB-5FDD-4217-A819-83CF988793A7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuctionHouse.API", "src\AuctionHouse.API\AuctionHouse.API.csproj", "{5AB2DEB2-4078-452B-8DB9-983F9AD55092}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuctionHouse.Domain", "src\AuctionHouse.Domain\AuctionHouse.Domain.csproj", "{CE35CF43-1FA0-416E-B13E-F6C32B8B3560}"
 EndProject
