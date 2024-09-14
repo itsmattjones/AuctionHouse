@@ -28,8 +28,8 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
         if (await _userManager.FindByEmailAsync(request.Email) is not null)
             return Result.Failure(Error.Conflict, $"Email {request.Email} is already in use.");
 
-        var newUser = new User { UserName = request.Username, Email = request.Email };
-        var createUserResult = await _userManager.CreateAsync(newUser, request.Password);
+        var user = new User { UserName = request.Username, Email = request.Email };
+        var createUserResult = await _userManager.CreateAsync(user, request.Password);
 
         if (!createUserResult.Succeeded)
         {

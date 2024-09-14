@@ -13,7 +13,7 @@ public interface IRepository<T> where T : class
     Task DeleteAsync(T entity, CancellationToken cancellationToken = default);
     Task DeleteRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-    Task<T> GetByIdAsync<TId>(TId id, CancellationToken cancellationToken = default);
+    Task<T?> GetByIdAsync<TId>(TId id, CancellationToken cancellationToken = default);
     Task<List<T>> ListAsync(CancellationToken cancellationToken = default);
     Task<int> CountAsync(CancellationToken cancellationToken = default);
 }

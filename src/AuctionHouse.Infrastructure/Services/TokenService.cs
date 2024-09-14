@@ -2,7 +2,7 @@
 
 using AuctionHouse.Application.Common.Interfaces;
 using AuctionHouse.Domain.Entities;
-using Microsoft.Extensions.Configuration;
+using AuctionHouse.Infrastructure.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -11,31 +11,20 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-public class TokenService : ITokenService
+public class TokenService(TokenSettings settings, IDateTime dateTime) : ITokenService
 {
-    private readonly IConfiguration _configuration;
-    private readonly IDateTime _dateTime;
-
-    /// <summary>
-    /// Creates a new instance of the <see cref="TokenService"/> class.
-    /// </summary>
-    public TokenService(IConfiguration configuration, IDateTime dateTime)
-    {
-        _configuration = configuration;
-        _dateTime = dateTime;
-    }
+    private readonly TokenSettings _settings = settings;
+    private readonly IDateTime _dateTime = dateTime;
 
     /// <inheritdoc/>
     public string CreateToken(User user)
     {
-        var tokenKey = Encoding.ASCII.GetBytes(_configuration["JWT_SECRET"]);
-        var issuer = _configuration["ISSUER"];
-        var audience = _configuration["AUDIENCE"];
+        var tokenKey = Encoding.ASCII.GetBytes(_settings.JwtSecret);
 
         var securityToken = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: GetDefaultClaims(user, issuer, audience),
+            issuer: _settings.Issuer,
+            audience: _settings.Audience,
+            claims: GenerateDefaultClaims(user),
             notBefore: _dateTime.Now,
             expires: _dateTime.Now.AddMinutes(5),
             signingCredentials: new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature));
@@ -62,9 +51,9 @@ public class TokenService : ITokenService
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = _configuration["ISSUER"],
-            ValidAudience = _configuration["AUDIENCE"],
-            IssuerSigningKey =  new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration["JWT_SECRET"])),
+            ValidIssuer = _settings.Issuer,
+            ValidAudience = _settings.Audience,
+            IssuerSigningKey =  new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_settings.JwtSecret)),
             ClockSkew = TimeSpan.Zero,
             ValidateLifetime = false,
             RequireExpirationTime = false
@@ -72,25 +61,21 @@ public class TokenService : ITokenService
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
-        var jwtSecurityToken = securityToken as JwtSecurityToken;
 
-        if (jwtSecurityToken is null || !jwtSecurityToken.Header.Alg.Contains("hmac-sha256", StringComparison.InvariantCultureIgnoreCase))
+        if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Contains("hmac-sha256", StringComparison.InvariantCultureIgnoreCase))
             throw new SecurityTokenException("Invalid token");
 
         return principal;
     }
 
-    private static IEnumerable<Claim> GetDefaultClaims(User user, string issuer, string audience)
-    {
-        return new[]
-        {
-            new Claim(ClaimTypes.Name, user.Id),
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Iss, issuer),
-            new Claim(JwtRegisteredClaimNames.Aud, audience),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("username", user.UserName)
-        };
-    }
+    private IEnumerable<Claim> GenerateDefaultClaims(User user) =>
+    [
+        new Claim(ClaimTypes.Name, user.Id),
+        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+        new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+        new Claim(JwtRegisteredClaimNames.Iss, _settings.Issuer),
+        new Claim(JwtRegisteredClaimNames.Aud, _settings.Audience),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim("username", user.UserName!)
+    ];
 }

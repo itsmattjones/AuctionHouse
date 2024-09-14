@@ -25,7 +25,7 @@ public abstract class Entity : IEquatable<Entity>
 
     public static bool operator !=(Entity a, Entity b) => !(a == b);
 
-    public bool Equals(Entity other)
+    public bool Equals(Entity? other)
     {
         if (other is null)
             return false;
@@ -33,7 +33,7 @@ public abstract class Entity : IEquatable<Entity>
         return ReferenceEquals(this, other) || Id == other.Id;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is null)
             return false;

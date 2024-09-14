@@ -9,6 +9,7 @@ public interface ICurrentUserContext
     /// Retrieves the user from the current HTTP context.
     /// </summary>
     /// <returns>A user.</returns>
+    /// <exception cref="Exceptions.CurrentUserException">Thrown when the current user couldn't be retrieved.</exception>
     Task<User> GetCurrentUserContext();
 
     /// <summary>
@@ -16,5 +17,6 @@ public interface ICurrentUserContext
     /// the current HTTP context.
     /// </summary>
     /// <returns>A JWT authentication token.</returns>
+    /// <exception cref="Exceptions.CurrentUserException">Thrown when the current user token couldn't be retrieved.</exception>
     string GetCurrentUserToken();
 }

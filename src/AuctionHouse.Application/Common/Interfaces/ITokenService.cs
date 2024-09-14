@@ -1,4 +1,5 @@
 ﻿using AuctionHouse.Domain.Entities;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
 namespace AuctionHouse.Application.Common.Interfaces;
@@ -24,5 +25,6 @@ public interface ITokenService
     /// </summary>
     /// <param name="token">A JWT token.</param>
     /// <returns>A claims principal.</returns>
+    /// <exception cref="SecurityTokenException">Thrown when the token is invalid.</exception>
     ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
 }

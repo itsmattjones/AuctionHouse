@@ -24,11 +24,11 @@ public class RevokeTokenCommandHandler : IRequestHandler<RevokeTokenCommand, Res
 
     public async Task<Result> Handle(RevokeTokenCommand request, CancellationToken cancellationToken)
     {
-        var currentUser = await _currentUserContext.GetCurrentUserContext();
+        var user = await _currentUserContext.GetCurrentUserContext();
 
-        currentUser.RefreshTokenExpiry = _dateTime.Now;
+        user.RefreshTokenExpiry = _dateTime.Now;
 
-        await _userManager.UpdateAsync(currentUser);
+        await _userManager.UpdateAsync(user);
 
         return Result.Success();
     }
