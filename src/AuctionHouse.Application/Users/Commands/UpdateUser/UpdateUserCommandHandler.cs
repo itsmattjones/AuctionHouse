@@ -25,42 +25,41 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Resul
 
     public async Task<Result> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
-        var currentUser = await _currentUserContext.GetCurrentUserContext();
+        var user = await _currentUserContext.GetCurrentUserContext();
 
-        if (IsRequestPropertyAvailableForUpdate(request.Email, currentUser.Email))
+        if (IsRequestPropertyAvailableForUpdate(request.Email, user.Email))
         {
-            if (await _userManager.FindByEmailAsync(request.Email) is not null)
+            if (await _userManager.FindByEmailAsync(request.Email!) is not null)
                 return Result.Failure(Error.Invalid, $"Email {request.Email} is already in use");
 
-            currentUser.Email = request.Email;
+            user.Email = request.Email;
         }
 
-        if (IsRequestPropertyAvailableForUpdate(request.Username, currentUser.UserName))
+        if (IsRequestPropertyAvailableForUpdate(request.Username, user.UserName))
         {
-            if (await _userManager.FindByNameAsync(request.Username) is not null)
+            if (await _userManager.FindByNameAsync(request.Username!) is not null)
                 return Result.Failure(Error.Invalid, $"Username {request.Username} is already in use");
 
-            currentUser.UserName = request.Username;
+            user.UserName = request.Username;
         }
 
         if (!string.IsNullOrWhiteSpace(request.Password))
         {
-            await _userManager.RemovePasswordAsync(currentUser);
-            await _userManager.AddPasswordAsync(currentUser, request.Password);
+            await _userManager.RemovePasswordAsync(user);
+            await _userManager.AddPasswordAsync(user, request.Password);
         }
 
-        if (IsRequestPropertyAvailableForUpdate(request.ProfileImageUrl, currentUser.ProfileImageUrl))
-            currentUser.ProfileImageUrl = request.ProfileImageUrl;
+        if (IsRequestPropertyAvailableForUpdate(request.ProfileImageUrl, user.ProfileImageUrl))
+        {
+            user.ProfileImageUrl = request.ProfileImageUrl!;
+        }
 
-        currentUser.RefreshTokenExpiry = _dateTime.Now;
-        await _userManager.UpdateAsync(currentUser);
+        user.RefreshTokenExpiry = _dateTime.Now;
+        await _userManager.UpdateAsync(user);
 
         return Result.Success();
     }
 
-    private static bool IsRequestPropertyAvailableForUpdate(string requestProperty, string currentProperty)
-    {
-        return !string.IsNullOrWhiteSpace(requestProperty)  
-            && !string.Equals(requestProperty, currentProperty, StringComparison.OrdinalIgnoreCase);
-    }
+    private static bool IsRequestPropertyAvailableForUpdate(string? requestProperty, string? currentProperty) =>
+        !string.IsNullOrWhiteSpace(requestProperty) && !string.Equals(requestProperty, currentProperty, StringComparison.OrdinalIgnoreCase);
 }

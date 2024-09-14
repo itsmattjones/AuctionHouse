@@ -27,26 +27,22 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Result<
 
     public async Task<Result<TokenResponseDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
-        if (await _userManager.FindByEmailAsync(request.Email.ToUpperInvariant()) is var existingUser && existingUser is null)
+        if (await _userManager.FindByEmailAsync(request.Email.ToUpperInvariant()) is var user && user is null)
             return Result.Failure<TokenResponseDto>(Error.Invalid);
 
-        if (!await _userManager.CheckPasswordAsync(existingUser, request.Password))
+        if (!await _userManager.CheckPasswordAsync(user, request.Password))
             return Result.Failure<TokenResponseDto>(Error.Invalid);
 
-        var accessToken = _tokenService.CreateToken(existingUser);
+        var accessToken = _tokenService.CreateToken(user);
         var refreshToken = _tokenService.CreateRefreshToken();
 
-        existingUser.RefreshToken = refreshToken;
-        existingUser.RefreshTokenExpiry = _dateTime.Now.AddDays(2);
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiry = _dateTime.Now.AddDays(2);
 
-        await _userManager.UpdateAsync(existingUser);
+        await _userManager.UpdateAsync(user);
 
-        _logger.LogInformation("Login successful for user [{id}] ({username})", existingUser.Id, existingUser.UserName);
+        _logger.LogInformation("Login successful for user [{id}] ({username})", user.Id, user.UserName);
 
-        return new TokenResponseDto
-        {
-            Token = accessToken,
-            RefreshToken = refreshToken
-        };
+        return new TokenResponseDto(accessToken, refreshToken);
     }
 }

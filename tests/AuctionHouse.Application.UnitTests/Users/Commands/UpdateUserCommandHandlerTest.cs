@@ -7,29 +7,51 @@ using AuctionHouse.Domain.Common.Result;
 using AuctionHouse.Domain.Entities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
 public class UpdateUserCommandHandlerTest
 {
+    private readonly Mock<UserManager<User>> _userManager;
+    private readonly Mock<IDateTime> _dateTimeProvider;
+    private readonly Mock<ICurrentUserContext> _currentUserContext;
+    private readonly UpdateUserCommandHandler _sut;
+
+    public UpdateUserCommandHandlerTest()
+    {
+        _dateTimeProvider = new Mock<IDateTime>();
+        _currentUserContext = new Mock<ICurrentUserContext>();
+
+        _userManager = new Mock<UserManager<User>>(
+            new Mock<IUserStore<User>>().Object,
+            Options.Create(new IdentityOptions()),
+            new PasswordHasher<User>(),
+            new List<IUserValidator<User>>(),
+            new List<PasswordValidator<User>>(),
+            new UpperInvariantLookupNormalizer(),
+            new IdentityErrorDescriber(), 
+            new Mock<IServiceProvider>().Object,
+            new Mock<ILogger<UserManager<User>>>().Object);
+
+        _sut = new UpdateUserCommandHandler(_currentUserContext.Object, _userManager.Object, _dateTimeProvider.Object);
+    }
+
     [Fact]
     public async Task UpdateUserCommandHandler_ShouldUpdateTheUsersEmail_WhenTheEmailDoesNotExist()
     {
         var user = new User() { Email = "someone@gmail.com" };
 
-        var mockDateTime = new Mock<IDateTime>();
-        var mockCurrentUserContext = new Mock<ICurrentUserContext>();
-        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+        _currentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
+        _userManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
+        _dateTimeProvider.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
-        mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
-        mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
-        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
-
-        var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        await handler.Handle(new UpdateUserCommand { Email = "test@gmail.com" }, CancellationToken.None);
+        await _sut.Handle(new UpdateUserCommand { Email = "test@gmail.com" }, CancellationToken.None);
 
         user.Email.Should().Be("test@gmail.com");
     }
@@ -39,16 +61,11 @@ public class UpdateUserCommandHandlerTest
     {
         var user = new User() { Email = "someone@gmail.com" };
 
-        var mockDateTime = new Mock<IDateTime>();
-        var mockCurrentUserContext = new Mock<ICurrentUserContext>();
-        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+        _currentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
+        _userManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(new User());
+        _dateTimeProvider.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
-        mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
-        mockUserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(new User());
-        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
-
-        var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        var result = await handler.Handle(new UpdateUserCommand { Email = "test@gmail.com" }, CancellationToken.None);
+        var result = await _sut.Handle(new UpdateUserCommand { Email = "test@gmail.com" }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(Error.Invalid);
@@ -60,16 +77,11 @@ public class UpdateUserCommandHandlerTest
     {
         var user = new User() { UserName = "User" };
 
-        var mockDateTime = new Mock<IDateTime>();
-        var mockCurrentUserContext = new Mock<ICurrentUserContext>();
-        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+        _currentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
+        _userManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
+        _dateTimeProvider.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
-        mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
-        mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
-        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
-
-        var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        var result = await handler.Handle(new UpdateUserCommand { Username = "testUser" }, CancellationToken.None);
+        var result = await _sut.Handle(new UpdateUserCommand { Username = "testUser" }, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         user.UserName.Should().Be("testUser");
@@ -80,16 +92,11 @@ public class UpdateUserCommandHandlerTest
     {
         var user = new User() { UserName = "User"};
 
-        var mockDateTime = new Mock<IDateTime>();
-        var mockCurrentUserContext = new Mock<ICurrentUserContext>();
-        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+        _currentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
+        _userManager.Setup(x => x.FindByNameAsync(It.IsAny<string>())).ReturnsAsync(new User());
+        _dateTimeProvider.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
-        mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
-        mockUserManager.Setup(x => x.FindByNameAsync(It.IsAny<string>())).ReturnsAsync(new User());
-        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
-
-        var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        var result = await handler.Handle(new UpdateUserCommand { Username = "testUser" }, CancellationToken.None);
+        var result = await _sut.Handle(new UpdateUserCommand { Username = "testUser" }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(Error.Invalid);
@@ -101,16 +108,11 @@ public class UpdateUserCommandHandlerTest
     {
         var user = new User() { ProfileImageUrl = "http://test.com/image.jpg" };
 
-        var mockDateTime = new Mock<IDateTime>();
-        var mockCurrentUserContext = new Mock<ICurrentUserContext>();
-        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+        _currentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
+        _userManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
+        _dateTimeProvider.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
-        mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
-        mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
-        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
-
-        var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        var result = await handler.Handle(new UpdateUserCommand { ProfileImageUrl = "http://test.com/image2.png" }, CancellationToken.None);
+        var result = await _sut.Handle(new UpdateUserCommand { ProfileImageUrl = "http://test.com/image2.png" }, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         user.ProfileImageUrl.Should().Be("http://test.com/image2.png");
@@ -121,18 +123,13 @@ public class UpdateUserCommandHandlerTest
     {
         var user = new User() { PasswordHash = "123456789" };
 
-        var mockDateTime = new Mock<IDateTime>();
-        var mockCurrentUserContext = new Mock<ICurrentUserContext>();
-        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+        _currentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
+        _userManager.Setup(x => x.RemovePasswordAsync(It.IsAny<User>())).Callback<User>(x => user.PasswordHash = null);
+        _userManager.Setup(x => x.AddPasswordAsync(It.IsAny<User>(), It.IsAny<string>())).Callback<User, string>((x, y) => user.PasswordHash = $"hashed{y}");
+        _userManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
+        _dateTimeProvider.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
-        mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
-        mockUserManager.Setup(x => x.RemovePasswordAsync(It.IsAny<User>())).Callback<User>(x => user.PasswordHash = null);
-        mockUserManager.Setup(x => x.AddPasswordAsync(It.IsAny<User>(), It.IsAny<string>())).Callback<User, string>((x, y) => user.PasswordHash = $"hashed{y}");
-        mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
-        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
-
-        var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        var result = await handler.Handle(new UpdateUserCommand { Password = "newPassword!123456" }, CancellationToken.None);
+        var result = await _sut.Handle(new UpdateUserCommand { Password = "newPassword!123456" }, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         user.PasswordHash.Should().Be("hashednewPassword!123456");
@@ -143,16 +140,11 @@ public class UpdateUserCommandHandlerTest
     {
         var user = new User() { UserName = "test" };
 
-        var mockDateTime = new Mock<IDateTime>();
-        var mockCurrentUserContext = new Mock<ICurrentUserContext>();
-        var mockUserManager = new Mock<UserManager<User?>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+        _currentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
+        _userManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
+        _dateTimeProvider.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
 
-        mockCurrentUserContext.Setup(x => x.GetCurrentUserContext()).ReturnsAsync(user);
-        mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success).Callback<User>(x => user = x);
-        mockDateTime.Setup(x => x.Now).Returns(new DateTime(2022, 10, 17));
-
-        var handler = new UpdateUserCommandHandler(mockCurrentUserContext.Object, mockUserManager.Object, mockDateTime.Object);
-        var result = await handler.Handle(new UpdateUserCommand { Username = "test2" }, CancellationToken.None);
+        var result = await _sut.Handle(new UpdateUserCommand { Username = "test2" }, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         user.RefreshTokenExpiry.Should().Be(new DateTime(2022, 10, 17));

@@ -5,6 +5,7 @@ using AuctionHouse.Application.Common.Interfaces;
 using AuctionHouse.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using System.Linq;
 using System.Threading.Tasks;
 
 public class CurrentUserContext : ICurrentUserContext
@@ -26,23 +27,24 @@ public class CurrentUserContext : ICurrentUserContext
     /// <inheritdoc/>
     public async Task<User> GetCurrentUserContext()
     {
-        var currentHttpContext = _contextAccessor.HttpContext;
-        var currentUser = await _userManager.GetUserAsync(currentHttpContext?.User);
+        var currentHttpContext = _contextAccessor.HttpContext ??
+            throw new CurrentUserException("Could not access HttpContext");
 
-        if (currentUser == null)
-            throw new CurrentUserException("User was not found");
+        if (await _userManager.GetUserAsync(currentHttpContext.User) is var user && user is null)
+            throw new CurrentUserException("The current user was not found");
 
-        return await _userManager.GetUserAsync(currentHttpContext?.User);
+        return user;
     }
 
     /// <inheritdoc/>
     public string GetCurrentUserToken()
     {
-        var authorizationHeader = _contextAccessor.HttpContext.Request.Headers?["Authorization"];
+        var currentHttpContext = _contextAccessor.HttpContext ??
+            throw new CurrentUserException("Could not access HttpContext");
 
-        if (authorizationHeader.HasValue)
-            return authorizationHeader.ToString();
-        else
-            throw new CurrentUserException($"Invalid token for user [{_contextAccessor.HttpContext.User?.Identity?.Name}]");
+        var authorizationHeader = currentHttpContext.Request.Headers.Authorization.SingleOrDefault() ??
+            throw new CurrentUserException($"Invalid token for user [{currentHttpContext.User?.Identity?.Name}]");
+
+        return authorizationHeader;
     }
 }

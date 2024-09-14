@@ -5,6 +5,6 @@ using MediatR;
 
 public class RefreshTokenCommand : IRequest<Result<RefreshTokenResponseDto>>
 {
-    public string Token { get; set; }
-    public string RefreshToken { get; set; }
+    public string Token { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
 }

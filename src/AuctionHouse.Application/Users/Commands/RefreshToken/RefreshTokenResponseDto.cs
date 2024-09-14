@@ -2,10 +2,5 @@
 
 using System.Text.Json.Serialization;
 
-public class RefreshTokenResponseDto
-{
-    public string Token { get; set; }
-
-    [JsonIgnore] // Refresh token is returned in http only cookie
-    public string RefreshToken { get; set; }
-}
+// Note: refresh token is returned in http only cookie.
+public record RefreshTokenResponseDto(string Token, [property: JsonIgnore] string RefreshToken);

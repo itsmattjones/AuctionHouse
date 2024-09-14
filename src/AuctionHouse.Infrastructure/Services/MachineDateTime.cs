@@ -3,6 +3,7 @@
 using AuctionHouse.Application.Common.Interfaces;
 using System;
 
+// TODO: Replace with .NET 8 TimeProvider
 public class MachineDateTime : IDateTime
 {
     /// <inheritdoc/>
